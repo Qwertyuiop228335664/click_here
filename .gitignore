@@ -1,0 +1,8 @@
+# Системные и ненужные файлы
+.DS_Store
+node_modules/
+.env
+AppData/
+.TurboVPN/
+*.log
+*.dat
