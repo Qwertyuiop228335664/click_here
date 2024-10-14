@@ -1,66 +1,112 @@
-<!doctype html>
+<!DOCTYPE html>
 <html>
 <head>
-  <title>Chat</title>
+  <title>Секретный мессенджер</title>
   <style>
-    ul { list-style-type: none; margin: 0; padding: 0; }
-    li { padding: 8px; margin-bottom: 10px; background-color: #f3f3f3; }
-    input { border: none; padding: 10px; width: 90%; margin-right: .5%; }
-    button { width: 9%; background: #4CAF50; color: white; border: none; padding: 10px; }
+    body { font-family: Arial, sans-serif; margin: 0; padding: 0; display: flex; justify-content: center; align-items: center; height: 100vh; background-color: #f0f0f0; }
+    #login, #chat { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+    #chat { display: none; width: 80%; max-width: 600px; height: 80vh; display: flex; flex-direction: column; }
+    ul { list-style-type: none; margin: 0; padding: 0; overflow-y: auto; flex-grow: 1; }
+    li { padding: 8px; margin-bottom: 10px; background-color: #f3f3f3; border-radius: 4px; }
+    input { border: 1px solid #ddd; padding: 10px; width: 100%; margin-bottom: 10px; border-radius: 4px; }
+    button { width: 100%; background: #4CAF50; color: white; border: none; padding: 10px; border-radius: 4px; cursor: pointer; }
+    #form { display: flex; }
+    #form input { flex-grow: 1; margin-right: 10px; }
+    #form button { width: auto; }
   </style>
 </head>
 <body>
   <div id="login">
-    <input id="password" type="password" placeholder="Enter password" />
-    <button onclick="authenticate()">Login</button>
+    <input id="username" type="text" placeholder="Имя пользователя" />
+    <input id="password" type="password" placeholder="Пароль" />
+    <button onclick="authenticate()">Войти</button>
   </div>
-  <div id="chat" style="display: none;">
+  <div id="chat">
     <ul id="messages"></ul>
     <form id="form" action="">
-      <input id="input" autocomplete="off" /><button>Send</button>
+      <input id="input" autocomplete="off" /><button>Отправить</button>
     </form>
+    <button onclick="logout()">Выйти</button>
   </div>
   <script src="https://cdn.socket.io/4.0.0/socket.io.min.js"></script>
   <script>
-    const correctPassword = '27354';
-    function authenticate() {
+    let socket;
+
+    async function authenticate() {
+      const username = document.getElementById('username').value;
       const password = document.getElementById('password').value;
-      if (password === correctPassword) {
-        document.getElementById('login').style.display = 'none';
-        document.getElementById('chat').style.display = 'block';
-      } else {
-        alert('Incorrect password');
+      
+      try {
+        const response = await fetch('/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username, password })
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+          document.getElementById('login').style.display = 'none';
+          document.getElementById('chat').style.display = 'flex';
+          initializeChat();
+        } else {
+          alert('Неверные учетные данные');
+        }
+      } catch (error) {
+        console.error('Ошибка при входе:', error);
+        alert('Произошла ошибка при входе');
       }
     }
 
-    var socket = io();
-    var form = document.getElementById('form');
-    var input = document.getElementById('input');
-
-    form.addEventListener('submit', function(e) {
-      e.preventDefault();
-      if (input.value) {
-        socket.emit('chat message', input.value);
-        input.value = '';
+    async function logout() {
+      try {
+        const response = await fetch('/logout', { method: 'POST' });
+        const data = await response.json();
+        
+        if (data.success) {
+          socket.disconnect();
+          document.getElementById('login').style.display = 'block';
+          document.getElementById('chat').style.display = 'none';
+          document.getElementById('messages').innerHTML = '';
+        } else {
+          alert('Ошибка при выходе');
+        }
+      } catch (error) {
+        console.error('Ошибка при выходе:', error);
+        alert('Произошла ошибка при выходе');
       }
-    });
+    }
 
-    socket.on('chat history', function(messages) {
-      console.log('Received chat history:', messages);
-      messages.forEach(function(msg) {
-        var item = document.createElement('li');
-        item.textContent = msg.content;
-        document.getElementById('messages').appendChild(item);
+    function initializeChat() {
+      socket = io();
+      
+      const form = document.getElementById('form');
+      const input = document.getElementById('input');
+      const messages = document.getElementById('messages');
+
+      socket.on('chat history', function(msgs) {
+        messages.innerHTML = '';
+        msgs.forEach(addMessage);
       });
-    });
 
-    socket.on('chat message', function(msg) {
-      console.log('New message received:', msg);
-      var item = document.createElement('li');
-      item.textContent = msg;
+      socket.on('chat message', addMessage);
+
+      form.addEventListener('submit', function(e) {
+        e.preventDefault();
+        if (input.value) {
+          socket.emit('chat message', input.value);
+          input.value = '';
+        }
+      });
+    }
+
+    function addMessage(msg) {
+      const item = document.createElement('li');
+      const time = new Date(msg.timestamp).toLocaleTimeString();
+      item.textContent = `${time} - ${msg.content}`;
       document.getElementById('messages').appendChild(item);
       window.scrollTo(0, document.body.scrollHeight);
-    });
+    }
   </script>
 </body>
 </html>
