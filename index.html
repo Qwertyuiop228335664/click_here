@@ -7,15 +7,33 @@
     li { padding: 8px; margin-bottom: 10px; background-color: #f3f3f3; }
     input { border: none; padding: 10px; width: 90%; margin-right: .5%; }
     button { width: 9%; background: #4CAF50; color: white; border: none; padding: 10px; }
+    #login { display: none; }
   </style>
 </head>
 <body>
-  <ul id="messages"></ul>
-  <form id="form" action="">
-    <input id="input" autocomplete="off" /><button>Send</button>
-  </form>
+  <div id="login">
+    <input id="password" type="password" placeholder="Enter password" />
+    <button onclick="authenticate()">Login</button>
+  </div>
+  <div id="chat" style="display: none;">
+    <ul id="messages"></ul>
+    <form id="form" action="">
+      <input id="input" autocomplete="off" /><button>Send</button>
+    </form>
+  </div>
   <script src="/socket.io/socket.io.js"></script>
   <script>
+    const correctPassword = '27354';
+    function authenticate() {
+      const password = document.getElementById('password').value;
+      if (password === correctPassword) {
+        document.getElementById('login').style.display = 'none';
+        document.getElementById('chat').style.display = 'block';
+      } else {
+        alert('Incorrect password');
+      }
+    }
+
     var socket = io();
     var form = document.getElementById('form');
     var input = document.getElementById('input');
