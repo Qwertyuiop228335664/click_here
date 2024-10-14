@@ -1,112 +1,116 @@
 <!DOCTYPE html>
-<html>
+<html lang="ru">
 <head>
-  <title>Секретный мессенджер</title>
-  <style>
-    body { font-family: Arial, sans-serif; margin: 0; padding: 0; display: flex; justify-content: center; align-items: center; height: 100vh; background-color: #f0f0f0; }
-    #login, #chat { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
-    #chat { display: none; width: 80%; max-width: 600px; height: 80vh; display: flex; flex-direction: column; }
-    ul { list-style-type: none; margin: 0; padding: 0; overflow-y: auto; flex-grow: 1; }
-    li { padding: 8px; margin-bottom: 10px; background-color: #f3f3f3; border-radius: 4px; }
-    input { border: 1px solid #ddd; padding: 10px; width: 100%; margin-bottom: 10px; border-radius: 4px; }
-    button { width: 100%; background: #4CAF50; color: white; border: none; padding: 10px; border-radius: 4px; cursor: pointer; }
-    #form { display: flex; }
-    #form input { flex-grow: 1; margin-right: 10px; }
-    #form button { width: auto; }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Секретный мессенджер</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 0; padding: 0; display: flex; justify-content: center; align-items: center; height: 100vh; background-color: #f0f0f0; }
+        #login, #chat { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
+        #chat { display: none; width: 80%; max-width: 600px; height: auto; display: flex; flex-direction: column; }
+        ul { list-style-type: none; margin: 0; padding: 0; overflow-y: auto; flex-grow: 1; }
+        li { padding: 8px; margin-bottom: 10px; background-color: #f3f3f3; border-radius: 4px; }
+        input { border-radius:.25rem;border:.125rem solid #ddd;padding:.625rem;width:auto;margin-bottom:.625rem;}
+        button { width:auto;background-color:#4CAF50;color:white;border:none;padding:.5rem;border-radius:.25rem;}
+        #form { display:flex;}
+        #form input { flex-grow :1;margin-right :10px;}
+        #form button { width:auto;}
+    </style>
 </head>
 <body>
-  <div id="login">
-    <input id="username" type="text" placeholder="Имя пользователя" />
-    <input id="password" type="password" placeholder="Пароль" />
-    <button onclick="authenticate()">Войти</button>
-  </div>
-  <div id="chat">
-    <ul id="messages"></ul>
-    <form id="form" action="">
-      <input id="input" autocomplete="off" /><button>Отправить</button>
-    </form>
-    <button onclick="logout()">Выйти</button>
-  </div>
-  <script src="https://cdn.socket.io/4.0.0/socket.io.min.js"></script>
-  <script>
-    let socket;
+    <div id="login">
+        <input id="username" type="text" placeholder="Имя пользователя" />
+        <input id="password" type="password" placeholder="Пароль" />
+        <button onclick="authenticate()">Войти</button>
+    </div>
+    
+    <div id="chat">
+        <ul id="messages"></ul>
+        <form id="form" action="">
+            <input id="input" autocomplete="off" /><button>Отправить</button>
+        </form>
+        <button onclick="logout()">Выйти</button>
+    </div>
 
-    async function authenticate() {
-      const username = document.getElementById('username').value;
-      const password = document.getElementById('password').value;
-      
-      try {
-        const response = await fetch('/login', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ username, password })
-        });
-        
-        const data = await response.json();
-        
-        if (data.success) {
-          document.getElementById('login').style.display = 'none';
-          document.getElementById('chat').style.display = 'flex';
-          initializeChat();
-        } else {
-          alert('Неверные учетные данные');
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        let socket;
+
+        async function authenticate() {
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+
+            try {
+                const response = await fetch('/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    document.getElementById('login').style.display = 'none';
+                    document.getElementById('chat').style.display = 'flex';
+                    initializeChat();
+                } else {
+                    alert(data.message || 'Неверные учетные данные');
+                }
+            } catch (error) {
+                console.error('Ошибка при входе:', error);
+                alert('Произошла ошибка при входе');
+            }
         }
-      } catch (error) {
-        console.error('Ошибка при входе:', error);
-        alert('Произошла ошибка при входе');
-      }
-    }
 
-    async function logout() {
-      try {
-        const response = await fetch('/logout', { method: 'POST' });
-        const data = await response.json();
-        
-        if (data.success) {
-          socket.disconnect();
-          document.getElementById('login').style.display = 'block';
-          document.getElementById('chat').style.display = 'none';
-          document.getElementById('messages').innerHTML = '';
-        } else {
-          alert('Ошибка при выходе');
+        async function logout() {
+            try {
+                const response = await fetch('/logout', { method: 'POST' });
+                const data = await response.json();
+
+                if (data.success) {
+                    socket.disconnect();
+                    document.getElementById('login').style.display = 'block';
+                    document.getElementById('chat').style.display = 'none';
+                    document.getElementById('messages').innerHTML = '';
+                } else {
+                    alert(data.message || 'Ошибка при выходе');
+                }
+            } catch (error) {
+                console.error('Ошибка при выходе:', error);
+                alert('Произошла ошибка при выходе');
+            }
         }
-      } catch (error) {
-        console.error('Ошибка при выходе:', error);
-        alert('Произошла ошибка при выходе');
-      }
-    }
 
-    function initializeChat() {
-      socket = io();
-      
-      const form = document.getElementById('form');
-      const input = document.getElementById('input');
-      const messages = document.getElementById('messages');
+        function initializeChat() {
+            socket = io();
 
-      socket.on('chat history', function(msgs) {
-        messages.innerHTML = '';
-        msgs.forEach(addMessage);
-      });
+            const form = document.getElementById('form');
+            const input = document.getElementById('input');
+            const messages = document.getElementById('messages');
 
-      socket.on('chat message', addMessage);
+            socket.on('chat history', function(msgs) {
+                messages.innerHTML = '';
+                msgs.forEach(addMessage);
+            });
 
-      form.addEventListener('submit', function(e) {
-        e.preventDefault();
-        if (input.value) {
-          socket.emit('chat message', input.value);
-          input.value = '';
+            socket.on('chat message', addMessage);
+
+            form.addEventListener('submit', function(e) {
+                e.preventDefault();
+                if (input.value) {
+                    socket.emit('chat message', input.value);
+                    input.value = '';
+                }
+            });
         }
-      });
-    }
 
-    function addMessage(msg) {
-      const item = document.createElement('li');
-      const time = new Date(msg.timestamp).toLocaleTimeString();
-      item.textContent = `${time} - ${msg.content}`;
-      document.getElementById('messages').appendChild(item);
-      window.scrollTo(0, document.body.scrollHeight);
-    }
-  </script>
+        function addMessage(msg) {
+            const item = document.createElement('li');
+            const time = new Date(msg.timestamp).toLocaleTimeString();
+            item.textContent = `${time} - ${msg.content}`;
+            document.getElementById('messages').appendChild(item);
+            window.scrollTo(0, document.body.scrollHeight);
+        }
+    </script>
 </body>
 </html>
