@@ -2,6 +2,7 @@ const express = require('express');
 const http = require('http');
 const socketIo = require('socket.io');
 const mongoose = require('mongoose');
+const path = require('path');
 
 const app = express();
 const server = http.createServer(app);
@@ -9,7 +10,7 @@ const io = socketIo(server);
 
 mongoose.set('strictQuery', false);
 
-mongoose.connect('mongodb+srv://neumyvaka:yZWzpZxbfRQccHzl@messaging.fce47.mongodb.net/?retryWrites=true&w=majority&appName=Messaging', {
+mongoose.connect('mongodb+srv://neumyvaka:твое_пароль@messaging.fce47.mongodb.net/?retryWrites=true&w=majority&appName=Messaging', {
   useNewUrlParser: true,
   useUnifiedTopology: true
 });
@@ -21,8 +22,11 @@ const messageSchema = new mongoose.Schema({
 
 const Message = mongoose.model('Message', messageSchema);
 
+// Serve static files from the current directory
+app.use(express.static(__dirname));
+
 app.get('/', (req, res) => {
-  res.sendFile(__dirname + '/index.html');
+  res.sendFile(path.join(__dirname, 'index.html'));
 });
 
 io.on('connection', (socket) => {
@@ -39,7 +43,7 @@ io.on('connection', (socket) => {
   socket.on('chat message', (msg) => {
     const message = new Message({ content: msg });
     message.save().then(() => {
-      console.log('Message saved:', msg);  // Отладочная информация
+      console.log('Message saved:', msg);
       io.emit('chat message', msg);
     }).catch(err => {
       console.error('Error saving message:', err);
@@ -47,6 +51,7 @@ io.on('connection', (socket) => {
   });
 });
 
-server.listen(3000, () => {
-  console.log('listening on *:3000');
+const PORT = process.env.PORT || 3000;
+server.listen(PORT, () => {
+  console.log(`listening on *:${PORT}`);
 });
