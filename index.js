@@ -39,6 +39,7 @@ io.on('connection', (socket) => {
   socket.on('chat message', (msg) => {
     const message = new Message({ content: msg });
     message.save().then(() => {
+      console.log('Message saved:', msg);  // Отладочная информация
       io.emit('chat message', msg);
     }).catch(err => {
       console.error('Error saving message:', err);

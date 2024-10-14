@@ -10,10 +10,16 @@
   </style>
 </head>
 <body>
-  <ul id="messages"></ul>
-  <form id="form" action="">
-    <input id="input" autocomplete="off" /><button>Send</button>
-  </form>
+  <div id="login">
+    <input id="password" type="password" placeholder="Enter password" />
+    <button onclick="authenticate()">Login</button>
+  </div>
+  <div id="chat" style="display: none;">
+    <ul id="messages"></ul>
+    <form id="form" action="">
+      <input id="input" autocomplete="off" /><button>Send</button>
+    </form>
+  </div>
   <script src="/socket.io/socket.io.js"></script>
   <script>
     const correctPassword = '27354';
@@ -40,6 +46,7 @@
     });
 
     socket.on('chat history', function(messages) {
+      console.log('Received chat history:', messages);  // Отладочная информация
       messages.forEach(function(msg) {
         var item = document.createElement('li');
         item.textContent = msg.content;
@@ -48,6 +55,7 @@
     });
 
     socket.on('chat message', function(msg) {
+      console.log('New message received:', msg);  // Отладочная информация
       var item = document.createElement('li');
       item.textContent = msg;
       document.getElementById('messages').appendChild(item);
