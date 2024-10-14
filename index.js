@@ -10,7 +10,7 @@ const io = socketIo(server);
 
 mongoose.set('strictQuery', false);
 
-mongoose.connect('mongodb+srv://neumyvaka:твое_пароль@messaging.fce47.mongodb.net/?retryWrites=true&w=majority&appName=Messaging', {
+mongoose.connect('mongodb+srv://neumyvaka:mndwZ4EZRs_RJEf@messaging.fce47.mongodb.net/?retryWrites=true&w=majority&appName=Messaging', {
   useNewUrlParser: true,
   useUnifiedTopology: true
 });
