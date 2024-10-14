@@ -7,6 +7,8 @@ const app = express();
 const server = http.createServer(app);
 const io = socketIo(server);
 
+mongoose.set('strictQuery', false);
+
 mongoose.connect('mongodb+srv://neumyvaka:yZWzpZxbfRQccHzl@messaging.fce47.mongodb.net/?retryWrites=true&w=majority&appName=Messaging', {
   useNewUrlParser: true,
   useUnifiedTopology: true
@@ -38,6 +40,8 @@ io.on('connection', (socket) => {
     const message = new Message({ content: msg });
     message.save().then(() => {
       io.emit('chat message', msg);
+    }).catch(err => {
+      console.error('Error saving message:', err);
     });
   });
 });

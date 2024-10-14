@@ -7,20 +7,13 @@
     li { padding: 8px; margin-bottom: 10px; background-color: #f3f3f3; }
     input { border: none; padding: 10px; width: 90%; margin-right: .5%; }
     button { width: 9%; background: #4CAF50; color: white; border: none; padding: 10px; }
-    #login { display: none; }
   </style>
 </head>
 <body>
-  <div id="login">
-    <input id="password" type="password" placeholder="Enter password" />
-    <button onclick="authenticate()">Login</button>
-  </div>
-  <div id="chat" style="display: none;">
-    <ul id="messages"></ul>
-    <form id="form" action="">
-      <input id="input" autocomplete="off" /><button>Send</button>
-    </form>
-  </div>
+  <ul id="messages"></ul>
+  <form id="form" action="">
+    <input id="input" autocomplete="off" /><button>Send</button>
+  </form>
   <script src="/socket.io/socket.io.js"></script>
   <script>
     const correctPassword = '27354';
