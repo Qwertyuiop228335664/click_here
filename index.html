@@ -88,18 +88,20 @@
             const input = document.getElementById('input');
             const messages = document.getElementById('messages');
 
+            // Получение истории сообщений
             socket.on('chat history', function(msgs) {
-                messages.innerHTML = '';
-                msgs.forEach(addMessage);
+                messages.innerHTML = ''; // Очистка списка сообщений
+                msgs.forEach(addMessage); // Добавление каждого сообщения в список
             });
 
+            // Обработка нового сообщения
             socket.on('chat message', addMessage);
 
             form.addEventListener('submit', function(e) {
                 e.preventDefault();
                 if (input.value) {
-                    socket.emit('chat message', input.value);
-                    input.value = '';
+                    socket.emit('chat message', input.value); // Отправка сообщения на сервер
+                    input.value = ''; // Очистка поля ввода
                 }
             });
         }
@@ -107,9 +109,9 @@
         function addMessage(msg) {
             const item = document.createElement('li');
             const time = new Date(msg.timestamp).toLocaleTimeString();
-            item.textContent = `${time} - ${msg.content}`;
-            document.getElementById('messages').appendChild(item);
-            window.scrollTo(0, document.body.scrollHeight);
+            item.textContent = `${time} - ${msg.content}`; // Форматирование сообщения с временем
+            document.getElementById('messages').appendChild(item); // Добавление сообщения в список
+            window.scrollTo(0, document.body.scrollHeight); // Прокрутка вниз к последнему сообщению
         }
     </script>
 </body>
