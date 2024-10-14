@@ -1,12 +1,10 @@
 const express = require('express');
-const http = require('http');
-const socketIo = require('socket.io');
 const mongoose = require('mongoose');
 const path = require('path');
 
 const app = express();
-const server = http.createServer(app);
-const io = socketIo(server);
+const httpServer = require("http").createServer(app);
+const io = require("socket.io")(httpServer);
 
 mongoose.set('strictQuery', false);
 
@@ -52,6 +50,6 @@ io.on('connection', (socket) => {
 });
 
 const PORT = process.env.PORT || 3000;
-server.listen(PORT, () => {
+httpServer.listen(PORT, () => {
   console.log(`listening on *:${PORT}`);
 });
