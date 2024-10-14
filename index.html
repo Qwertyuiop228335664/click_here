@@ -20,7 +20,7 @@
       <input id="input" autocomplete="off" /><button>Send</button>
     </form>
   </div>
-  <script src="https://cdn.socket.io/4.0.0/socket.io.min.js"></script>
+  <script src="/socket.io/socket.io.js"></script>
   <script>
     const correctPassword = '27354';
     function authenticate() {
@@ -46,7 +46,7 @@
     });
 
     socket.on('chat history', function(messages) {
-      console.log('Received chat history:', messages);  // Отладочная информация
+      console.log('Received chat history:', messages);
       messages.forEach(function(msg) {
         var item = document.createElement('li');
         item.textContent = msg.content;
@@ -55,7 +55,7 @@
     });
 
     socket.on('chat message', function(msg) {
-      console.log('New message received:', msg);  // Отладочная информация
+      console.log('New message received:', msg);
       var item = document.createElement('li');
       item.textContent = msg;
       document.getElementById('messages').appendChild(item);

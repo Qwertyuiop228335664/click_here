@@ -6,3 +6,4 @@ AppData/
 .TurboVPN/
 *.log
 *.dat
+.vercel
