@@ -4,15 +4,20 @@ const path = require('path');
 const bcrypt = require('bcrypt');
 const session = require('express-session');
 const app = express();
-const httpServer = require("https").createServer({
-  key: fs.readFileSync('path/to/key.pem'),
-  cert: fs.readFileSync('path/to/cert.pem')
-}, app);
-const io = require("socket.io")(httpServer);
+const fs = require('fs');
+const https = require('https');
+
+// Настройка HTTPS сервера
+const httpsOptions = {
+  key: fs.readFileSync('path/to/key.pem'),  // Замените на путь к вашему ключу
+  cert: fs.readFileSync('path/to/cert.pem')  // Замените на путь к вашему сертификату
+};
+const httpsServer = https.createServer(httpsOptions, app);
+const io = require("socket.io")(httpsServer);
 
 app.use(express.json());
 app.use(session({
-  secret: 'your-secret-key',
+  secret: 'your-secret-key',  // Замените на случайную строку
   resave: false,
   saveUninitialized: true,
   cookie: { secure: true }
@@ -23,8 +28,10 @@ mongoose.set('strictQuery', false);
 mongoose.connect('mongodb+srv://neumyvaka:mndwZ4EZRs_RJEf@messaging.fce47.mongodb.net/?retryWrites=true&w=majority&appName=Messaging', {
   useNewUrlParser: true,
   useUnifiedTopology: true
-}).then(() => console.log('Connected to MongoDB'))
-  .catch(err => console.error('Error connecting to MongoDB:', err));
+}).then(() => {
+  console.log('Подключено к MongoDB');
+  createUsers();  // Создаем пользователей после подключения к базе данных
+}).catch(err => console.error('Ошибка подключения к MongoDB:', err));
 
 const messageSchema = new mongoose.Schema({
   content: String,
@@ -39,6 +46,34 @@ const userSchema = new mongoose.Schema({
 });
 
 const User = mongoose.model('User', userSchema);
+
+async function createUsers() {
+  const users = [
+    { username: 'sus', password: 'semen' },
+    { username: 'admin', password: 'nimda' }
+  ];
+
+  for (const user of users) {
+    try {
+      const existingUser = await User.findOne({ username: user.username });
+      if (existingUser) {
+        console.log(`Пользователь ${user.username} уже существует`);
+        continue;
+      }
+
+      const hashedPassword = await bcrypt.hash(user.password, 10);
+      const newUser = new User({
+        username: user.username,
+        password: hashedPassword
+      });
+
+      await newUser.save();
+      console.log(`Пользователь ${user.username} успешно создан`);
+    } catch (error) {
+      console.error(`Ошибка при создании пользователя ${user.username}:`, error);
+    }
+  }
+}
 
 app.use(express.static(__dirname));
 
@@ -107,6 +142,6 @@ io.on('connection', async (socket) => {
 });
 
 const PORT = process.env.PORT || 3000;
-httpServer.listen(PORT, () => {
-  console.log(`listening on *:${PORT}`);
+httpsServer.listen(PORT, () => {
+  console.log(`HTTPS сервер запущен на порту ${PORT}`);
 });
