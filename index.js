@@ -4,23 +4,15 @@ const path = require('path');
 const bcrypt = require('bcrypt');
 const session = require('express-session');
 const app = express();
-const fs = require('fs');
-const https = require('https');
-
-// Настройка HTTPS сервера
-const httpsOptions = {
-  key: fs.readFileSync('path/to/key.pem'),  // Замените на путь к вашему ключу
-  cert: fs.readFileSync('path/to/cert.pem')  // Замените на путь к вашему сертификату
-};
-const httpsServer = https.createServer(httpsOptions, app);
-const io = require("socket.io")(httpsServer);
+const http = require('http').createServer(app);
+const io = require("socket.io")(http);
 
 app.use(express.json());
 app.use(session({
-  secret: 'your-secret-key',  // Замените на случайную строку
+  secret: 'your-secret-key',
   resave: false,
   saveUninitialized: true,
-  cookie: { secure: true }
+  cookie: { secure: false }  // HTTP для Vertex
 }));
 
 mongoose.set('strictQuery', false);
@@ -60,13 +52,11 @@ async function createUsers() {
         console.log(`Пользователь ${user.username} уже существует`);
         continue;
       }
-
       const hashedPassword = await bcrypt.hash(user.password, 10);
       const newUser = new User({
         username: user.username,
         password: hashedPassword
       });
-
       await newUser.save();
       console.log(`Пользователь ${user.username} успешно создан`);
     } catch (error) {
@@ -126,22 +116,4 @@ io.on('connection', async (socket) => {
   }
 
   socket.on('disconnect', () => {
-    console.log('user disconnected');
-  });
-
-  socket.on('chat message', async (msg) => {
-    const message = new Message({ content: msg });
-    try {
-      await message.save();
-      console.log('Message saved:', msg);
-      io.emit('chat message', { content: msg, timestamp: message.timestamp });
-    } catch (err) {
-      console.error('Error saving message:', err);
-    }
-  });
-});
-
-const PORT = process.env.PORT || 3000;
-httpsServer.listen(PORT, () => {
-  console.log(`HTTPS сервер запущен на порту ${PORT}`);
-});
+    console
